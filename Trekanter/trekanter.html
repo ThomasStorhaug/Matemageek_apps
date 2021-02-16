@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="main.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jcanvas/21.0.1/min/jcanvas.min.js" integrity="sha512-pu2L+33GBCuTrTU3mNJphG2Hm2JKlLA01280LIiz29D40f/UFOU5dEVxVuW46p+HZeZhXvQsUxtVFxPabX9S9g==" crossorigin="anonymous"></script>
+    <script src="handles.js"></script>
+    <script src="trekanter.js"></script>
+    <title>Trekanter</title>
+</head>
+<body>
+    <div class="container">
+        <canvas id="figur_canvas" width="800" height="600"></canvas>
+        <div class="sidebar">
+            <h1>Toolbar</h1>
+            <button id="create">Lag trekant</button>
+            <button id="erase">Slett</button>
+            <button class="angle" id="angle-a">Vinkel A</button>
+            <button class="angle" id="angle-b">Vinkel B</button>
+            <button class="angle" id="angle-c">Vinkel C</button>
+            <p>A: </p>
+            <p id="a-coords">--</p>
+            <p>B: </p>
+            <p id="b-coords">--</p>
+            <p>C: </p>
+            <p id="c-coords">--</p>
+        </div>
+    </div>
+</body>
+</html>

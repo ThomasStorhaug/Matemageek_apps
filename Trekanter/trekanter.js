@@ -26,6 +26,7 @@ $(document).ready(function(){
             $('#c-coords').text(corners.C)
         }
     }
+    /*
     function addAngle(corner, angles) {
         var angle = Math.round(Math.abs(angles[0] - angles[1]));
         if (angle > 180) {
@@ -71,30 +72,85 @@ $(document).ready(function(){
             return angle*(-1)
         }
     }
+    
+    
+    */
+
+    function calcVector(rootcorner, corner) {
+        return [corner[0] - rootcorner[0], corner[1] - rootcorner[1]];
+    }
+    function calcNormAngle(rootcorner, corner) {
+        var vector = calcVector(rootcorner, corner)
+        var angle = Math.acos(vector[1]*(-1)/Math.sqrt(Math.pow(vector[0], 2) + Math.pow(vector[1], 2)))*180/Math.PI;
+        //console.log('vinkel: ', angle)
+        if (vector[0] < 0) {
+            return 360 - angle;
+        } else {
+            return angle;
+        }
+    }
+
+    function drawAngle(rootcorner, corner1, corner2, name) {
+        var angle1 = calcNormAngle(rootcorner, corner1);
+        var angle2 = calcNormAngle(rootcorner, corner2);
+        console.log(angle1, angle2)
+        var vector1 = calcVector(rootcorner, corner1);
+        var vector2 = calcVector(rootcorner, corner2);
+        var sumVector = [vector1[0] + vector2[0], vector1[1] + vector2[1]];
+        if (sumVector[0] > 0) {
+            if (vector1[1] < vector2[1]) {
+                var leftAngle = angle1;
+                var rightAngle = angle2;
+            } else {
+                var leftAngle = angle2;
+                var rightAngle = angle1;
+            }
+        } else if (sumVector[0] < 0) {
+            if (vector1[1] > vector2[1]) {
+                var leftAngle = angle1;
+                var rightAngle = angle2;
+            } else {
+                var leftAngle = angle2;
+                var rightAngle = angle1;
+            }
+        }
+        $('canvas').removeLayer(name + '_arc')
+        .drawArc({
+            strokeStyle: 'black',
+            strokeWidth: 2,
+            radius: 20,
+            draggable: true,
+            groups: ['triangle'],
+            dragGroups: ['triangle'],
+            name: name + '_arc',
+            x: rootcorner[0], y: rootcorner[1],
+            start: leftAngle, end: rightAngle
+        }).drawLayers();
+    }
     function updateAngle(corner) {
         if (corner=='A') {
             if (angleSlices.A == false) {
                 angleSlices.A = true;
-                addAngle('A', [calcNormAngle(corners.A, corners.C), calcNormAngle(corners.A, corners.B)]);
+                drawAngle(corners.A, corners.B, corners.C, 'A');
             } else {
                 angleSlices.A = false;
-                $('canvas').removeLayer('A_slice').drawLayers()
+                $('canvas').removeLayer('A_arc').drawLayers()
             }
         } else if (corner=='B') {
             if (angleSlices.B == false) {
                 angleSlices.B = true;
-                addAngle('B', [calcNormAngle(corners.B, corners.A), calcNormAngle(corners.B, corners.C)]);
+                drawAngle(corners.B, corners.A, corners.C, 'B')
             } else {
                 angleSlices.B = false;
-                $('canvas').removeLayer('B_slice').drawLayers()
+                $('canvas').removeLayer('B_arc').drawLayers()
             }
         } else if (corner=='C') {
             if (angleSlices.C == false) {
                 angleSlices.C = true;
-                addAngle('C', [calcNormAngle(corners.C, corners.B), calcNormAngle(corners.C, corners.A)]);
+                drawAngle(corners.C, corners.A, corners.B, 'C')
             } else {
                 angleSlices.C = false;
-                $('canvas').removeLayer('C_slice').drawLayers()
+                $('canvas').removeLayer('C_arc').drawLayers()
             }
         }
     }
@@ -107,7 +163,6 @@ $(document).ready(function(){
         }   else if (id=='angle-c') {
             updateAngle('C');
         }
-        
     });
     $('#create').click(function() {
         $('canvas').addLayer({

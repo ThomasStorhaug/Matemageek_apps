@@ -1,7 +1,12 @@
 
 
 $(document).ready(function(){
-
+    var colors = {
+        'Pastel blue': "#739cf5"
+    };
+    var figures = {
+        'triangles': 0,
+    };
     var corners = {
         "A": [100, 500],
         "B": [500, 500],
@@ -12,18 +17,19 @@ $(document).ready(function(){
         "B": false,
         "C": false
     };
-    function updateCoords(corner_a, corner_b, corner_c) {
-        if (corner_a != corners.A) {
-            corners.A = corner_a;
-            $('#a-coords').text(corners.A);
+    function updateCoords(corner_a, corner_b, corner_c, layer) {
+        var data = $('canvas').getLayer(layer).data;
+        if (corner_a != data.corners.A.coords) {
+            data.corners.A.coords = corner_a;
+            $('#a-coords').text(data.corners.A.coords);
         }
-        if (corner_b != corners.B) {
-            corners.B = corner_b;
-            $('#b-coords').text(corners.B);
+        if (corner_b != data.corners.B.coords) {
+            data.corners.B.coords = corner_b;
+            $('#b-coords').text(data.corners.B.coords);
         }
-        if (corner_c != corners.C) {
-            corners.C = corner_c;
-            $('#c-coords').text(corners.C)
+        if (corner_c != data.corners.C.coords) {
+            data.corners.C.coords = corner_c;
+            $('#c-coords').text(data.corners.C.coords)
         }
     }
     
@@ -70,7 +76,6 @@ $(document).ready(function(){
             leftAngle = Math.max(angle1, angle2);
             rightAngle = Math.min(angle1, angle2);
         }
-        console.log('left angle: ' + leftAngle + ' |right angle: ' + rightAngle)
         if (Math.round(cornerAngle) == 90) {
             var corrAngle = leftAngle - 90;
             $('canvas').removeLayer(name + '_arc')
@@ -141,18 +146,9 @@ $(document).ready(function(){
             }
         }
     }
-    $('.angle').click(function() {
-        var id = $(this).attr('id');
-        if (id=='angle-a') {
-            updateAngle('A');
-        }   else if (id=='angle-b') {
-            updateAngle('B');
-        }   else if (id=='angle-c') {
-            updateAngle('C');
-        }
-    });
-    $('#create').click(function() {
+    function createTriangle(counter) {
         $('canvas').addLayer({
+            name: 'triangle_' + counter,
             type: 'line',
             groups: ['triangle'],
             dragGroups: ['triangle'],
@@ -164,17 +160,17 @@ $(document).ready(function(){
             x3: corners.C[0], y3: corners.C[1],
             closed: true,
             handle: {
+                groups: ['handles'],
                 type: 'arc',
-                fillStyle: 'black',
-                strokeStyle: 'black',
-                strokeWidth: 2,
+                fillStyle: 'rgba(0, 0, 0, 0)',
                 radius: 10
             },
             handlestop: function(layer) {
                 updateCoords(
                     [layer.x1 + layer.x, layer.y1 + layer.y], 
                     [layer.x2 + layer.x, layer.y2 + layer.y], 
-                    [layer.x3 + layer.x, layer.y3 + layer.y]
+                    [layer.x3 + layer.x, layer.y3 + layer.y], 
+                    layer
                     );
                 for (slice in angleSlices) {
                     if (angleSlices[slice] == true) {
@@ -187,13 +183,71 @@ $(document).ready(function(){
                 updateCoords(
                     [layer.x1 + layer.x, layer.y1 + layer.y], 
                     [layer.x2 + layer.x, layer.y2 + layer.y], 
-                    [layer.x3 + layer.x, layer.y3 + layer.y]
+                    [layer.x3 + layer.x, layer.y3 + layer.y],
+                    layer
                     );
+            },
+            mouseover: function(layer) {
+                $('canvas').setLayer(layer, {
+                    handle: {
+                        type: 'arc',
+                        fillStyle: 'rgba(115, 156, 245, 255)',
+                        radius: 10
+                    }
+                }).drawLayers();
+                console.log('mouseover' + layer)
+            },
+            mouseout: function(layer) {
+                $('canvas').setLayer(layer, {
+                    handle: {
+                        type: 'arc',
+                        fillStyle: 'rgba(0, 0, 0, 0)',
+                        radius: 10
+                    }
+                })
+            },
+            data: {
+                corners: {
+                    A: {
+                        coords: [corners.A[0], corners.A[1]],
+                        arc: false
+                    },
+                    B: {
+                        coords: [corners.B[0], corners.B[1]],
+                        arc: false
+                    },
+                    C: {
+                        coords: [corners.C[0], corners.C[1]],
+                        arc: false
+                    }
+                }
             }
+            
        })
        .drawLayers();
+    }
+    $('.angle').click(function() {
+        var id = $(this).attr('id');
+        if (id=='angle-a') {
+            updateAngle('A');
+        }   else if (id=='angle-b') {
+            updateAngle('B');
+        }   else if (id=='angle-c') {
+            updateAngle('C');
+        }
+    });
+    $('#create').click(function() {
+        createTriangle(figures.triangles);
+        figures.triangles += 1;
    }) 
    $('#erase').click(function() {
         $('canvas').removeLayers().drawLayers();
+   })
+   $('.set').click(function() {
+       var angle_A = $('#angle_input_A').val();
+       var angle_B = $('#angle_input_B').val();
+       var angle_C = $('#angle_input_C').val();
+       console.log(angle_A, angle_B, angle_C)
+       console.log($('canvas').getLayer('triangle_0').data)
    })
 });

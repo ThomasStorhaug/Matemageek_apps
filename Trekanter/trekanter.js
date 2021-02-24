@@ -12,11 +12,6 @@ $(document).ready(function(){
         "B": [500, 500],
         "C": [250, 250]
     };
-    var angleSlices = {
-        "A": false,
-        "B": false,
-        "C": false
-    };
     function updateCoords(corner_a, corner_b, corner_c, layer) {
         var data = $('canvas').getLayer(layer).data;
         if (corner_a != data.corners.A.coords) {
@@ -56,7 +51,7 @@ $(document).ready(function(){
         var length = Math.sqrt(Math.pow(vector[0], 2) + Math.pow(vector[1], 2));
         return [vector[0]/length, vector[1]/length];
     }
-    function drawAngle(rootcorner, corner1, corner2, name) {
+    function drawAngle(rootcorner, corner1, corner2, cornername, trianglename) {
         var angle1 = calcNormAngle(rootcorner, corner1);
         var angle2 = calcNormAngle(rootcorner, corner2);
         //console.log(angle1, angle2)
@@ -78,7 +73,7 @@ $(document).ready(function(){
         }
         if (Math.round(cornerAngle) == 90) {
             var corrAngle = leftAngle - 90;
-            $('canvas').removeLayer(name + '_arc')
+            $('canvas').removeLayer(trianglename + cornername + '_arc')
             .drawRect({
                 strokeStyle: 'black',
                 strokeWidth: 2,
@@ -86,13 +81,13 @@ $(document).ready(function(){
                 groups:  ['triangle'],
                 dragGroups: ['triangle'],
                 draggable: true,
-                name: name + '_arc',
+                name: trianglename + cornername + '_arc',
                 x: rootcorner[0], y: rootcorner[1],
                 translateX: 10, translateY: 10,
                 rotate: corrAngle
             }).drawLayers();
         } else {
-            $('canvas').removeLayer(name + '_arc')
+            $('canvas').removeLayer(trianglename + cornername + '_arc')
             .drawArc({
             strokeStyle: 'black',
             strokeWidth: 2,
@@ -100,49 +95,52 @@ $(document).ready(function(){
             draggable: true,
             groups: ['triangle'],
             dragGroups: ['triangle'],
-            name: name + '_arc',
+            name: trianglename + cornername + '_arc',
             x: rootcorner[0], y: rootcorner[1],
             start: leftAngle, end: rightAngle
             }).drawLayers();
         }
-        $('canvas').removeLayer(name + '_text')
+        $('canvas').removeLayer(trianglename + cornername + '_text')
         .drawText({
             fillStyle: 'black',
             x: rootcorner[0], y: rootcorner[1] + 30,
             fontSize: 25,
             fontFamily: 'Verdana, sans-serif',
             text: Math.round(cornerAngle),
-            name: name + '_text',
+            name: trianglename + cornername + '_text',
             draggable: true,
             groups: ['triangle'],
             dragGroups: ['triangle']
         }).drawLayers();
         
     }
-    function updateAngle(corner) {
+    function updateAngle(corner, layer) {
+        var corners = $('canvas').getLayer(layer).data.corners;
+        var name = $('canvas').getLayer(layer).name;
+        console.log('updating angle' + corner + ' in layer with name: ' + name)
         if (corner=='A') {
-            if (angleSlices.A == false) {
-                angleSlices.A = true;
-                drawAngle(corners.A, corners.B, corners.C, 'A');
+            if (corners.A.arc == false) {
+                corners.A.arc = true;
+                drawAngle(corners.A.coords, corners.B.coords, corners.C.coords, 'A');
             } else {
-                angleSlices.A = false;
-                $('canvas').removeLayer('A_arc').removeLayer('A_text').drawLayers()
+                corners.A.arc = false;
+                $('canvas').removeLayer(name + 'A_arc').removeLayer('A_text').drawLayers()
             }
         } else if (corner=='B') {
-            if (angleSlices.B == false) {
-                angleSlices.B = true;
-                drawAngle(corners.B, corners.A, corners.C, 'B')
+            if (corners.B.arc == false) {
+                corners.B.arc = true;
+                drawAngle(corners.B.coords, corners.A.coords, corners.C.coords, 'B')
             } else {
-                angleSlices.B = false;
-                $('canvas').removeLayer('B_arc').removeLayer('B_text').drawLayers()
+                corners.B.arc = false;
+                $('canvas').removeLayer(name + 'B_arc').removeLayer('B_text').drawLayers()
             }
         } else if (corner=='C') {
-            if (angleSlices.C == false) {
-                angleSlices.C = true;
-                drawAngle(corners.C, corners.A, corners.B, 'C')
+            if (corners.C.arc == false) {
+                corners.C.arc = true;
+                drawAngle(corners.C.coords, corners.A.coords, corners.B.coords, 'C')
             } else {
-                angleSlices.C = false;
-                $('canvas').removeLayer('C_arc').removeLayer('C_text').drawLayers()
+                corners.C.arc = false;
+                $('canvas').removeLayer(name + 'C_arc').removeLayer('C_text').drawLayers()
             }
         }
     }
@@ -172,10 +170,10 @@ $(document).ready(function(){
                     [layer.x3 + layer.x, layer.y3 + layer.y], 
                     layer
                     );
-                for (slice in angleSlices) {
-                    if (angleSlices[slice] == true) {
-                        angleSlices[slice] = false;
-                        updateAngle(slice);
+                for (corner in layer.data.corners) {
+                    if (layer.data.corners[corner].arc == true) {
+                        layer.data.corners[corner].arc = false;
+                        updateAngle(corner, layer);
                     }
                 };
             },
@@ -195,7 +193,6 @@ $(document).ready(function(){
                         radius: 10
                     }
                 }).drawLayers();
-                console.log('mouseover' + layer)
             },
             mouseout: function(layer) {
                 $('canvas').setLayer(layer, {
@@ -228,12 +225,13 @@ $(document).ready(function(){
     }
     $('.angle').click(function() {
         var id = $(this).attr('id');
+        var layer = $('canvas').getLayer('triangle_0');
         if (id=='angle-a') {
-            updateAngle('A');
+            updateAngle('A', layer);
         }   else if (id=='angle-b') {
-            updateAngle('B');
+            updateAngle('B', layer);
         }   else if (id=='angle-c') {
-            updateAngle('C');
+            updateAngle('C', layer);
         }
     });
     $('#create').click(function() {
